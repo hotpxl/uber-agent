@@ -22,7 +22,7 @@ class Evaluator():
         self._map = map
         locations = self._map.locations()
         self._candidates = []
-        for _ in range(20):
+        for _ in range(100):
             self._candidates.append(random.sample(locations, 2))
         self._agent = agent
         self._agent_location = locations[0]
@@ -34,15 +34,16 @@ class Evaluator():
             self._candidates,
             key=lambda c: self._map.travel_time(self._agent_location, c[0]))
         index = self._agent.interact(self._agent_location, candidates[:5])
-        choice = candidates.pop(index)
+        choice = candidates[index]
         self._time_elapsed += self._map.travel_time(self._agent_location,
                                                     choice[0])
         self._time_elapsed += self._map.travel_time(*choice)
+        self._candidates.remove(choice)
         self._agent_location = choice[1]
         self._reward += 1
 
     def run_for(self, t):
-        while self._time_elapsed < t:
+        while self._time_elapsed < t and 0 < len(self._candidates):
             self.step()
 
     def reward(self):
