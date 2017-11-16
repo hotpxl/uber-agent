@@ -6,6 +6,7 @@ import uber_agent.city
 def simulate(agent, num_trials=500, time_limit=24 * 3600, training=True):
     city = uber_agent.city.City.load()
     trip_generator = uber_agent.city.TripGenerator(city)
+    reward_history = []
     for i in range(num_trials):
         simulator = Simulator(city, trip_generator, agent)
         time = 0
@@ -19,6 +20,8 @@ def simulate(agent, num_trials=500, time_limit=24 * 3600, training=True):
             total_reward += reward
         print('Trial {} finished with total reward {}.'.format(
             i, total_reward))
+        reward_history.append(total_reward)
+    return reward_history
 
 
 # TODO(yutian): Make this Q-learning specific simulator? Factor out problem MDP?
