@@ -17,3 +17,12 @@ class City():
     def load(filename='city.p'):
         with open(filename, 'rb') as f:
             return pickle.load(f)
+
+    def locations(self):
+        return self._locations
+
+    def travel_time(self, a, b):
+        return self._travel_times[a][b]
+
+    def fare_estimate(self, a, b):
+        return self._fare_estimates[a][b]
