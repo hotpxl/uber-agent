@@ -3,18 +3,22 @@
 import uber_agent.city
 
 
-def simulate(agent, num_trials=100, time_limit=43200):
-    city = uber_agent.city.load()
-    trip_generator = uber_agent.city.TripGenerator()
+def simulate(agent, num_trials=500, time_limit=24 * 3600, training=True):
+    city = uber_agent.city.City.load()
+    trip_generator = uber_agent.city.TripGenerator(city)
     for i in range(num_trials):
-        print('Trial {}.'.format(i))
         simulator = Simulator(city, trip_generator, agent)
         time = 0
+        total_reward = 0
         while time < time_limit:
             old_state, action, reward, new_state, travel_time = simulator.step(
             )
-            agent.backward(old_state, action, reward, new_state)
+            if training:
+                agent.backward(old_state, action, reward, new_state)
             time += travel_time
+            total_reward += reward
+        print('Trial {} finished with total reward {}.'.format(
+            i, total_reward))
 
 
 # TODO(yutian): Make this Q-learning specific simulator? Factor out problem MDP?
@@ -37,7 +41,7 @@ class Simulator():
         self._num_choices = num_choices
 
     def step(self):
-        ALPHA = 0.5
+        ALPHA = 1 / 150
         candidates = [
             self._trip_generator.driver_at(self._location)
             for _ in range(self._num_choices)

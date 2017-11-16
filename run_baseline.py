@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 import random
 
-import uber_agent.state
+import uber_agent.simulation
 
 
 class RandomAgent():
-    def interact(self, location, candidates):
-        return random.choice(range(len(candidates)))
+    def forward(self, *args):
+        return random.random()
+
+    def backward(self, *args):
+        pass
 
 
 def main():
-    map = uber_agent.state.load_map()
-    evaluator = uber_agent.state.Evaluator(map, RandomAgent())
-    evaluator.run_for(7200)
-    print(evaluator.reward())
+    agent = RandomAgent()
+    uber_agent.simulation.simulate(agent)
 
 
 if __name__ == '__main__':

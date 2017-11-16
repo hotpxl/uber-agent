@@ -1,21 +1,31 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import uber_agent.state
+import uber_agent.city
+import uber_agent.simulation
 
 
 class OracleAgent():
-    def __init__(self, map):
-        self._map = map
+    def __init__(self, city):
+        self._city = city
 
-    def interact(self, location, candidates):
-        return sorted(enumerate(candidates), key=lambda i: self._map.travel_time(location, i[1][0]) + self._map.travel_time(*i[1]))[0][0]
+    def _reward(self, location, action):
+        ALPHA = 1 / 150
+        fare = self._city.fare_estimate(*action)
+        travel_time = self._city.travel_time(
+            location, action[0]) + self._city.travel_time(*action)
+        reward = fare - ALPHA * travel_time
+        return reward
+
+    def forward(self, state, action):
+        return self._reward(state, action)
+
+    def backward(self, *args):
+        pass
 
 
 def main():
-    map = uber_agent.state.load_map()
-    evaluator = uber_agent.state.Evaluator(map, OracleAgent(map))
-    evaluator.run_for(7200)
-    print(evaluator.reward())
+    agent = OracleAgent(uber_agent.city.City.load())
+    uber_agent.simulation.simulate(agent)
 
 
 if __name__ == '__main__':
