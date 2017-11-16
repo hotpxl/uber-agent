@@ -15,7 +15,7 @@ class RandomAgent():
 
 def main():
     agent = RandomAgent()
-    uber_agent.simulation.simulate(agent)
+    print(uber_agent.simulation.simulate(agent))
 
 
 if __name__ == '__main__':

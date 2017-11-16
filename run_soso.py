@@ -35,7 +35,7 @@ class SosoAgent():
 
 def main():
     agent = SosoAgent(uber_agent.city.City.load())
-    uber_agent.simulation.simulate(agent)
+    print(uber_agent.simulation.simulate(agent))
 
 
 if __name__ == '__main__':
