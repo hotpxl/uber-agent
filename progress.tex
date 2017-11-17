@@ -1,0 +1,102 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{tabularx}
+
+\title{On Demand Transportation Scheduling \\ \large{Progress Report}}
+\author{Weini Yu\\\texttt{weiniyu}\and Zhouchangwan Yu\\\texttt{zyu21}\and Yutian Li\\\texttt{yutian}}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Our project aims to develop an intelligent model that provides a solution to the single vehicle pickup and delivery problem (SVPDP). For now we are only going to look at the pickup and delivery problem of a single vehicle and without considering carpool situation.
+
+\section{Model}
+We have approached this problem using an MDP model, with the intuition that at a certain location (state), the driver could choose to take one of the requests that come in (action). For each action the driver receives a reward. At the end of the day, the driver has a total reward for all the rides he or she takes. And through solving this MDP, the driver can figure out which request to take at a location in order to maximize the total reward.
+
+\subsection{State}
+We originally had states that include the driver's current location and a list of requests at the location. However, this makes the state space very large ($10^{5}$) which is not desired. Also the relative order of requests does not really matter. So we have simplified it such that it only contains the driver's current location, a zone index number, reducing the state space to $10$. For example, \texttt{state=1} means that the driver is at location $1$. Note that we are not losing anything by not including requests. Requests are encoded into actions.
+
+\subsection{Action}
+Since state is the current location the driver is at, the action would be the possible request the driver receives, which is a tuple \texttt{(source, destination)} where source is the pick up zone index and destination is the drop off zone index. In our specific model, the driver is given $5$ requests to choose from at the start of the game and the end of each ride. So at any step, there are $5$ legal actions. And the driver must choose one from them.
+
+The requests are generated in the following way. The source location is randomly sampled with lower location indices having a higher weight. The destination location is sampled uniformly randomly. By generating requests in a nonuniform way, we favor locations that have smaller indices and create an imbalance between states. We hope that the agent will figure out some locations are inherently better, and use this knowledge to achieve higher rewards.
+
+\subsection{Reward}
+The reward of each action or ride will be $(\text{fare}-\alpha\cdot\text{travel time})$. The intuition here is that gas cost needs to be subtracted and the longer the travel time is the less happy the customer is so there is the negative impact on the reward. The constant $\alpha$ balances fare and travel time, and could be seen as a measure of productivity. In our specific model, $\alpha$ is chosen to be $\frac{1}{150}$.
+
+\section{Algorithm}
+\subsection{Baseline and Oracle}
+Based on this model, we implemented baseline as a driver that randomly picks one request at each step. And the oracle is a driver that knows the true reward function for all the requests, and picks greedily according to it.
+
+\subsection{Q-learning}
+For our agent, we used Q-learning as a first step to solve this problem. For a smaller sized problem we could run exhaustive search, but it is clearly not scalable. We chose Q-learning instead of TD learning, because intuitively states do not matter that much in our model. Though some states are inherently better due to the request generation probability, actions are much more important. Besides, if a driver takes a request and returns to the same location, the state is same but clearly the total reward is not.
+
+For function approximation, we used linear regression to predict the Q value. As a first step, we manually picked a few features.
+
+\subsubsection{Features}
+\noindent\textbf{Distance}:
+The travel distance is one of the main concern for the drivers. Here we define two features related to the travel distance, the distance from current location to source, and the distance from source to destination.
+
+\noindent\textbf{Zone}: Some zones are more attractive to people than others, so the drives may have preference on where they would like to go. Each zone as current location, source, or destination are all considered as features.
+
+We define indicator features $\bm{1}\{\text{current zone}=z\}$, $\bm{1}\{\text{source zone}=z\}$, and $\bm{1}\{\text{destination zone}=z\}$ for all $z$'s.
+
+\subsubsection{Training}
+
+Using features described above, we learned the respective weights using gradient descent. We updated weights using exponential weighted moving average as $w_{i}\leftarrow w_{i}-\eta(Q(s,a)-r)\phi_{i}(s,a)$, where $\eta=0.1$. Note that we set discount $\gamma=0$. This is because there is no way for the driver to know the legal actions (requests) available at future states. They are randomly generated only when the driver gets to a new state. $\max_{a}Q(s,a)$ is hard to define, hence $\gamma=0$ for simplicity.
+
+\section{Data Preprocessing}
+
+At the end of data preprocessing stage, we generate a \texttt{city.p} pickle file that has everything we need about the environment. It has a list of locations, travel times between locations, fare estimates, and coordinates of the locations.
+
+\noindent\textbf{Locations (a.k.a. zone indices)}: We downloaded from Uber Movement travel times in Washington D.C. during second quarter of year 2017. There are 558 zones in total, and we picked the first 10 zones for downsampling.
+
+\noindent\textbf{Travel times}: We picked the arithmetic mean travel time as the travel time between zones. The distribution of travel times is shown below.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.6\textwidth]{images/time.png}
+\end{center}
+\caption{Distribution of traveling time.}
+\end{figure}
+
+\noindent\textbf{Coordinates}: We calculated the arithmetic mean longitude and latitude as coordinates of the locations.
+
+\noindent\textbf{Fare}: The fares between these 10 locations are requested form Uber Developers API. Given the longitudes and latitudes of any two locations, the low estimate and high estimate of the fare are generated for various types of vehicles. We use the average of the fare for UberX and keep the data in a $10\times 10$ matrix. The distribution of fare estimates are shown below.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.6\textwidth]{images/fare.png}
+\end{center}
+\caption{Distribution of estimated fare.}
+\end{figure}
+
+\section{Example}
+
+For a concrete example, we assume the driver is at location $s$. Five requests $(s_{i},d_{i})$ for $1\leq i\leq 5$ are dispatched to the driver. The driver evaluates $Q(s,(s_{i},d_{i}))$ for all five requests using linear estimator $\sum_{i}w_{i}\phi_{i}(s,a)$ and picks the one with the highest estimation. The driver takes this action. Then the reward $r$ is given to the driver, who in turn uses $w_{i}\leftarrow w_{i}-\eta(Q(s,a)-r)\phi_{i}(s,a)$ to perform gradient descent to update the weights $w$.
+
+\section{Results}
+
+We trained our algorithm and compared to baseline and oracle. The resulting reward curve is shown below.
+
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=0.6\textwidth]{images/reward.png}
+\end{center}
+\caption{Reward curve.}
+\end{figure}
+
+At first our algorithm is acting randomly because all the weights are just initialized. Then quickly it ramps up and learns the Q function. At iteration 100, it is already receiving twice the reward of baseline, but still about $30\%$ worse than the oracle.
+
+\section{Next Steps}
+We will first implement our Q-learning algorithm on a larger sample size (100 zone locations) to see how it performs as the problem is getting more complicated. We will also considering more advanced learning algorithm. We could try to use a neural network instead of hand craft linear features.
+
+\end{document}
