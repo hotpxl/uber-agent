@@ -28,9 +28,10 @@ class SosoAgent():
         return score
 
     def backward(self, state, action, reward, new_state):
-        ALPHA = 0.1
+        ETA = 0.1
+        s = self.forward(state, action)
         for f, v in self.feature_extractor(state, action).items():
-            self._weights[f] = (1 - ALPHA) * self._weights[f] + ALPHA * reward
+            self._weights[f] -= ETA * (s - reward) * v
 
 
 def main():
