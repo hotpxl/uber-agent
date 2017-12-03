@@ -115,8 +115,12 @@ def loadZoneCoordinates(fileName="washington_DC_censustracts.json"):
         # print len(d)
 
 a = ZoneCoordinates()
+coordinates = []
+for i in range(1, 41):
+    coordinates.append(a.dict[i])
+print(coordinates)
 #print (a.getDistance(1,300))
-matrix = a.fare_matrix()
-import pickle
-with open('fare.p', 'wb') as f:
-    pickle.dump(matrix, f)
+#matrix = a.fare_matrix()
+#import pickle
+#with open('fare.p', 'wb') as f:
+#    pickle.dump(matrix, f)
