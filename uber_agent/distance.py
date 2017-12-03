@@ -1,4 +1,7 @@
-import json, math, requests
+import json
+import math
+import requests
+import multiprocessing.dummy
 
 # times
 times = [[695.1904000000001, 770.73, 1017.77, 1312.24, 695.1904000000001, 1472.96, 695.1904000000001, 129.99, 115.0, 244.64], [961.81, 695.1904000000001, 522.48, 1073.94, 695.1904000000001, 1524.46, 695.1904000000001, 983.21, 1020.13, 799.52], [1041.9, 459.82, 695.1904000000001, 604.37, 695.1904000000001, 1123.34, 2161.67, 1178.62, 1248.64, 1280.43], [1317.65, 881.57, 490.71, 695.1904000000001, 1784.3, 613.75, 1852.73, 1425.4, 1538.77, 1472.58], [695.1904000000001, 695.1904000000001, 695.1904000000001, 1371.66, 695.1904000000001, 1429.8, 695.1904000000001, 695.1904000000001, 695.1904000000001, 695.1904000000001], [1518.75, 1449.72, 1049.26, 597.03, 980.51, 695.1904000000001, 1235.76, 1640.29, 1590.41, 1825.91], [695.1904000000001, 695.1904000000001, 1976.87, 1658.43, 678.28, 1304.11, 695.1904000000001, 695.1904000000001, 695.1904000000001, 695.1904000000001], [159.04, 872.27, 1115.49, 1401.99, 695.1904000000001, 1551.41, 695.1904000000001, 695.1904000000001, 83.23, 87.03], [141.66, 930.38, 1193.22, 1483.12, 695.1904000000001, 1417.57, 695.1904000000001, 122.93, 695.1904000000001, 251.84], [331.15, 731.46, 1258.16, 1628.78, 695.1904000000001, 1706.79, 695.1904000000001, 90.91, 228.69, 695.1904000000001]]
@@ -47,7 +50,8 @@ class ZoneCoordinates():
             matrix.append(l)
         return matrix
 
-    def get_fare(self, index1, index2):
+    def get_fare(self, i):
+        index1, index2 = i
 
         start_latitude = self.dict[index1][0]
         start_longitude= self.dict[index1][1]
@@ -55,7 +59,7 @@ class ZoneCoordinates():
         end_longitude= self.dict[index2][1]
 
         url  =  'https://api.uber.com/v1.2/estimates/price?start_latitude={}&start_longitude={}&end_latitude={}&end_longitude={}'.format(start_latitude, start_longitude, end_latitude, end_longitude)
-        headers = {'Authorization': 'Token uBVRF7hOPOfAdo6BNQcUb5M8OVZEhNAc7g2Y6J3v',
+        headers = {'Authorization': 'Token 3c0nc9MQBT_Ati3Smkb8Dmn7272uf_jyrq_r27OX',
                    'Accept-Language': 'en_US',
                    'Content-Type': 'application/json'}
 
@@ -63,28 +67,28 @@ class ZoneCoordinates():
         #print (r.text)
 
         data = json.loads(r.text)
-        entries = data["prices"]
-        uberX = entries[7]
-        high_estimate = uberX["high_estimate"]
-        low_estimate = uberX["low_estimate"]
-        average_fare = (high_estimate+low_estimate)/2
+        if 'prices' in data:
+            entries = data["prices"]
+            uberX = entries[7]
+            high_estimate = uberX["high_estimate"]
+            low_estimate = uberX["low_estimate"]
+            average_fare = (high_estimate+low_estimate)/2
+        else:
+            average_fare = None
 
-        return average_fare
+        return i, average_fare
 
     def fare_matrix(self):
-
-        matrix = []
-        for i in range(1,11):
-            ls = []
-            for j in range(1,11):
-                fare = self.get_fare(i,j)
-                print (fare)
-                ls.append(fare)
-            matrix.append(ls)
+        pool = multiprocessing.dummy.Pool(32)
+        entries = []
+        for i in range(1, 41):
+            for j in range(1, 41):
+                entries.append((i, j))
+        matrix = [[0] * 40 for _ in range(40)]
+        for (i, j), fare in pool.imap_unordered(self.get_fare, entries):
+            print(i, j, fare)
+            matrix[i-1][j-1] = fare
         return matrix
-
-
-
 
 
 def loadZoneCoordinates(fileName="washington_DC_censustracts.json"):
@@ -112,5 +116,7 @@ def loadZoneCoordinates(fileName="washington_DC_censustracts.json"):
 
 a = ZoneCoordinates()
 #print (a.getDistance(1,300))
-print (a.distMatrix(100))
-# print (a.fare_matrix())
+matrix = a.fare_matrix()
+import pickle
+with open('fare.p', 'wb') as f:
+    pickle.dump(matrix, f)
