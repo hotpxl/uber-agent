@@ -7,7 +7,7 @@ times = [[695.1904000000001, 770.73, 1017.77, 1312.24, 695.1904000000001, 1472.9
 fares = [[16.0, 34.5, 30.5, 33.5, 24.0, 30.5, 21.5, 23.5, 31.5, 28.5], [35.0, 17.0, 22.0, 20.5, 28.5, 18.5, 25.0, 23.5, 15.0, 26.5], [33.5, 20.5, 18.5, 21.5, 21.5, 21.0, 25.0, 28.0, 28.5, 22.5], [37.0, 20.5, 19.5, 18.5, 29.5, 17.5, 29.0, 23.0, 16.0, 25.0], [29.5, 27.0, 19.5, 23.5, 18.5, 26.5, 23.0, 29.0, 28.5, 17.5], [28.5, 16.5, 24.0, 14.0, 26.0, 17.0, 28.0, 20.5, 19.0, 22.5], [25.0, 29.5, 28.0, 28.5, 21.5, 24.0, 17.0, 16.5, 24.0, 24.5], [24.0, 32.0, 31.5, 30.5, 27.0, 27.0, 22.5, 17.0, 23.0, 21.5], [31.5, 17.0, 26.0, 16.0, 28.5, 19.5, 24.0, 20.5, 20.5, 24.0], [28.5, 30.5, 25.0, 31.5, 17.0, 23.0, 22.0, 19.5, 27.0, 18.5]]
 
 class ZoneCoordinates():
-    def __init__(self, fileName="washington_DC_censustracts.json"):
+    def __init__(self, fileName="../data/washington_DC_censustracts.json"):
         self.dict = {}
         with open(fileName) as json_data:
             data = json.load(json_data)
@@ -29,7 +29,7 @@ class ZoneCoordinates():
                 self.dict[zoneId] = avgCoord
 
             json_data.close()
-        #print self.dict
+        # print (self.dict)
     # def getCoordinatesByZoneId(self, zoneId):
     # def getAddressByZoneId(self, zoneId):
     #
@@ -37,6 +37,15 @@ class ZoneCoordinates():
         c1 = self.dict[zoneId1]
         c2 = self.dict[zoneId2]
         return math.sqrt((c1[0]-c2[0])**2 + (c1[1]-c2[1])**2)
+
+    def distMatrix(self, n):
+        matrix = []
+        for i in range(1, n+1):
+            l = []
+            for j in range(1, n+1):
+                l.append(self.getDistance(i, j))
+            matrix.append(l)
+        return matrix
 
     def get_fare(self, index1, index2):
 
@@ -103,4 +112,5 @@ def loadZoneCoordinates(fileName="washington_DC_censustracts.json"):
 
 a = ZoneCoordinates()
 #print (a.getDistance(1,300))
-print (a.fare_matrix())
+print (a.distMatrix(100))
+# print (a.fare_matrix())
