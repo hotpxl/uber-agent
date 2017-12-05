@@ -3,7 +3,7 @@
 import uber_agent.city
 
 
-def simulate(agent, num_trials=500, time_limit=24 * 3600, training=True):
+def simulate(agent, num_trials=500, time_limit=3 * 3600, training=True):
     city = uber_agent.city.City.load()
     trip_generator = uber_agent.city.TripGenerator(city)
     reward_history = []
@@ -11,6 +11,7 @@ def simulate(agent, num_trials=500, time_limit=24 * 3600, training=True):
         simulator = Simulator(city, trip_generator, agent)
         time = 0
         total_reward = 0
+        total_trips = 0
         while time < time_limit:
             old_state, action, reward, new_state, travel_time = simulator.step(
             )
@@ -18,8 +19,9 @@ def simulate(agent, num_trials=500, time_limit=24 * 3600, training=True):
                 agent.backward(old_state, action, reward, new_state)
             time += travel_time
             total_reward += reward
-        print('Trial {} finished with total reward {}.'.format(
-            i, total_reward))
+            total_trips += 1
+        print('Trial {} finished with total reward {} and {} trips.'.format(
+            i, total_reward, total_trips))
         reward_history.append(total_reward)
     return reward_history
 
