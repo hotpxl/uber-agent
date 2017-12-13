@@ -6,10 +6,10 @@ import uber_agent.simulation
 
 
 class RandomAgent():
-    def forward(self, *args):
-        return random.random()
+    def get_action(self, _, actions):
+        return random.choice(actions)
 
-    def backward(self, *args):
+    def feedback(self, *args):
         pass
 
 

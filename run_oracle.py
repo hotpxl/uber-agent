@@ -24,7 +24,8 @@ class OracleAgent():
 
 
 def main():
-    agent = OracleAgent(uber_agent.city.City.load())
+    agent = uber_agent.simulation.QLearningAgentWrapper(
+        OracleAgent(uber_agent.city.City.load()))
     print(uber_agent.simulation.simulate(agent))
 
 

@@ -16,7 +16,7 @@ def simulate(agent, num_trials=500, time_limit=3 * 3600, training=True):
             old_state, action, reward, new_state, travel_time = simulator.step(
             )
             if training:
-                agent.backward(old_state, action, reward, new_state)
+                agent.feedback(old_state, action, reward, new_state)
             time += travel_time
             total_reward += reward
             total_trips += 1
@@ -26,7 +26,6 @@ def simulate(agent, num_trials=500, time_limit=3 * 3600, training=True):
     return reward_history
 
 
-# TODO(yutian): Make this Q-learning specific simulator? Factor out problem MDP?
 class Simulator():
     def __init__(self,
                  city,
@@ -51,10 +50,7 @@ class Simulator():
             self._trip_generator.driver_at(self._location)
             for _ in range(self._num_choices)
         ]
-        predictions = [(self._agent.forward(self._location, i), i)
-                       for i in candidates]
-        predictions.sort(reverse=True)
-        action = predictions[0][1]
+        action = self._agent.get_action(self._location, candidates)
         fare = self._city.fare_estimate(*action)
         travel_time = self._city.travel_time(
             self._location, action[0]) + self._city.travel_time(*action)
@@ -63,3 +59,16 @@ class Simulator():
         new_state = action[1]
         self._location = new_state
         return old_state, action, reward, new_state, travel_time
+
+
+class QLearningAgentWrapper():
+    def __init__(self, agent):
+        self._agent = agent
+
+    def get_action(self, state, actions):
+        predictions = [(self._agent.forward(state, i), i) for i in actions]
+        predictions.sort(reverse=True)
+        return predictions[0][1]
+
+    def feedback(self, old_state, action, reward, new_state):
+        self._agent.backward(old_state, action, reward, new_state)

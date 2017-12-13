@@ -35,7 +35,8 @@ class SosoAgent():
 
 
 def main():
-    agent = SosoAgent(uber_agent.city.City.load())
+    agent = uber_agent.simulation.QLearningAgentWrapper(
+        SosoAgent(uber_agent.city.City.load('city_40.p')))
     print(uber_agent.simulation.simulate(agent))
 
 
