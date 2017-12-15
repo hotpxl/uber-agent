@@ -176,7 +176,7 @@ Note that there is no separation of training and testing datasets. This is becau
 
 \subsection{Runtime Performance}
 
-Our algorithm runs under 5 seconds with negligible memory consumption. This is comparable to the baseline and oracle algorithms, both using only constant time per step. Because function approximation is used in the model, the actual information stored is greatly reduced. By handcrafting multiple features, the model tries to fit the underlying complex distribution with minimal loss. So after all, we are not storing or computing many more features than the baseline nor the oracle. In some sense this is similar to a dimensional reduction technique.
+Our algorithm runs under 5 seconds with negligible memory consumption. This is comparable to the baseline and oracle algorithms, both using only constant time per step. Because function approximation is used in the model, the actual information stored is greatly reduced. By handcrafting multiple features, the model tries to fit the underlying complex distribution with minimal loss. After all, we do not store or compute many more features than the baseline nor the oracle. In some sense this is similar to a dimensional reduction technique.
 
 \subsection{Error Analysis}
 
@@ -198,7 +198,7 @@ After our algorithm converges after around 40 trials, there is a constant gap be
 
 Besides basic runtime and model error analysis, we want to test the scalability of our algorithm.
 
-We run the same experiments on the small dataset ($n=10$), with both baseline and oracle. Runtime performance does not change that much. It completes under 3 seconds with negligible memory consumption, on par with baseline and oracle algorithms. The large dataset has 4 times number of states, and hence 16 times number of possible actions. Function approximation is able to catch the main relationship between states and actions in both datasets. So we do not see a 16 times memory usage or performance difference. As for total reward earned, we can see from Figure \ref{fig:reward_small} that the algorithm converges after 40 trials as well. The result is very close to oracle; the rate of convergence is similar either. The overall shape and trend is like that of the larger dataset.
+We run the same experiments on the small dataset ($n=10$), with both baseline and oracle. Runtime performance does not change much. It completes under 3 seconds with negligible memory consumption, on par with baseline and oracle algorithms. The large dataset has 4 times number of states, and hence 16 times number of possible actions. Function approximation is able to catch the main relationship between states and actions in both datasets. So we do not see a 16 times memory usage or performance difference. As for total reward earned, we can see from Figure \ref{fig:reward_small} that the algorithm converges after 40 trials as well. The result is very close to oracle; the rate of convergence is similar either. The overall shape and trend is like that of the larger dataset.
 
 \begin{figure}[!htb]
 \begin{center}
