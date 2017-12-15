@@ -3,7 +3,7 @@
 import uber_agent.city
 
 
-def simulate(agent, num_trials=500, time_limit=3 * 3600, training=True):
+def simulate(agent, num_trials=2000, time_limit=12 * 3600, training=True):
     city = uber_agent.city.City.load()
     trip_generator = uber_agent.city.TripGenerator(city)
     reward_history = []

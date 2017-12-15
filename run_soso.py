@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 import collections
 
+import numpy as np
+
 import uber_agent.simulation
 import uber_agent.city
 
@@ -36,8 +38,9 @@ class SosoAgent():
 
 def main():
     agent = uber_agent.simulation.QLearningAgentWrapper(
-        SosoAgent(uber_agent.city.City.load('city_40.p')))
-    print(uber_agent.simulation.simulate(agent))
+        SosoAgent(uber_agent.city.City.load()))
+    res = uber_agent.simulation.simulate(agent)
+    np.savetxt('soso.txt', res)
 
 
 if __name__ == '__main__':

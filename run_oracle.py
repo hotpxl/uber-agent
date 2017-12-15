@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import numpy as np
+
 import uber_agent.city
 import uber_agent.simulation
 
@@ -26,7 +28,8 @@ class OracleAgent():
 def main():
     agent = uber_agent.simulation.QLearningAgentWrapper(
         OracleAgent(uber_agent.city.City.load()))
-    print(uber_agent.simulation.simulate(agent))
+    res = uber_agent.simulation.simulate(agent)
+    np.savetxt('oracle.txt', res)
 
 
 if __name__ == '__main__':
